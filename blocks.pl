@@ -133,9 +133,7 @@ say([X|R]) :- write(X), write(' '), say(R).
 say([]).
 
 %part A
-A is_sitting_on B :- location(B,[X,Y]),
-                     Y1 is Y+1,
-                     location(A,[X,Y1]), !.
+A is_sitting_on B :- on(A,B), !.
 
 _ is_sitting_on 'Nothing'.
 
