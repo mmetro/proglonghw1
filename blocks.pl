@@ -93,6 +93,10 @@ assert_item(on(_,B)) :-
     B \== table, location(B, [XB,YB]), YBN is YB + 1, location(_, [XB,YBN]),
     write('Cannot move to, something is on top!'), nl, !, fail.
 
+get_value(result, O) :-
+    nb_getval(result, O).
+    get_value(I, I).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Question idiom q:
 %   Which block is on top of X?
@@ -121,9 +125,12 @@ q(load_script(F)) --> [load],[F],end.
 
 
 % How to answer q
-B is_on_top_of A :- location(A,[X,Y]),
-                    Y1 is Y+1,
-                    location(B,[X,Y1]), !.
+B is_on_top_of Ai :- 
+    get_value(Ai, A),
+    location(A,[X,Y]),
+    Y1 is Y+1,
+    location(B,[X,Y1]), !,
+    nb_setval(result, B).
 'Nothing' is_on_top_of _ .
 
 answer(X is_on_top_of A) :- call(X is_on_top_of A),
@@ -133,7 +140,9 @@ say([X|R]) :- write(X), write(' '), say(R).
 say([]).
 
 %part A
-A is_sitting_on B :- on(A,B), !.
+Ai is_sitting_on B :- get_value(Ai, A), 
+                      on(A,B), !, 
+                      nb_setval(result, B).
 
 _ is_sitting_on 'Nothing'.
 
@@ -160,16 +169,21 @@ stack([H|T], Last) :- assert_item(on(H,Last)),
                        stack(T, H).
 
 %part D
-move_from_to(A, B) :- C is_sitting_on A,
-                      assert_item(on(C,B)).
+move_from_to(A, B) :- get_value(A, A1),
+                      get_value(B, B1),
+                      on(C,A),
+                      assert_item(on(C,B1)),
+                      nb_setval(result, X).
 
 answer(move_from_to(A,B)) :- call(move_from_to(A,B)),
                              say([moved,from,A,to,B]).
 
 %part E
-put_highest_block_on(A) :- highest_block(B),
-                           A \= B,
-                           assert_item(on(B,A)),!. 
+put_highest_block_on(Ai) :- get_value(Ai, A),
+                            highest_block(B),!,
+                            A \= B,
+                            assert_item(on(B,A)),
+                            nb_setval(result, X). 
 
 answer(put_highest_block_on(A)) :- call(put_highest_block_on(A)),
                                    say([placed,the,highest,block,on,top,of,A]).
